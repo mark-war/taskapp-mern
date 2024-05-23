@@ -1,0 +1,19 @@
+{
+  "name": "taskapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:api\" \"npm run start:web\"",
+    "start:api": "npm --prefix api start",
+    "start:web": "npm --prefix web start",
+    "install:all": "npm --prefix api install && npm --prefix web install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
