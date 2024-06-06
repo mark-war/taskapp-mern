@@ -1,44 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AddTask from '../components/AddTask';
 import TaskList from '../components/TaskList';
+import api from '../utils/api'; // Import the configured axios instance
+import AuthContext from '../components/AuthContext'; // Import the AuthContext
 
 const Home = () => {
+    const { isAuthenticated, currentUser, loading } = useContext(AuthContext); // Access the user from the AuthContext
     const [showCompleted, setShowCompleted] = useState(false);
     const [todos, setTodos] = useState([]);
     const filteredTodos = showCompleted ? todos.filter(todo => todo.completed) : todos;
 
     useEffect(() => {
-        fetchTasks();
-    }, []);
+        const fetchTasks = async () => {
+            try {
+                const response = await api.get('/tasks')
+                setTodos(response.data);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        };
 
-    const fetchTasks = async () => {
-        try {
-            const response = await fetch('http://localhost:5001/api/tasks');
-            const data = await response.json();
-            setTodos(data);
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
+        if (isAuthenticated && currentUser && !loading) {
+            fetchTasks();
         }
-    };
+    }, [isAuthenticated, currentUser, loading]);
 
     const addToDo = async (desc) => {
-        if (!desc) return;
+        if (!desc || !currentUser) return;
         const newTask = {
-            desc
+            desc,
+            user: currentUser
         };
 
         try {
-            const response = await fetch('http://localhost:5001/api/tasks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newTask),
-            });
-            const data = await response.json();
-            setTodos(prevTodos => [...prevTodos, data]);
+            const response = await api.post('/tasks', newTask);
+            setTodos(prevTodos => [...prevTodos, response.data]);
         } catch (error) {
             console.error('Error adding task:', error);
         }
@@ -49,15 +47,8 @@ const Home = () => {
         updatedTodo.completed = !updatedTodo.completed;
 
         try {
-            const response = await fetch(`http://localhost:5001/api/tasks/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedTodo),
-            });
-            const data = await response.json();
-            setTodos(todos.map((todo) => (todo._id === id ? data : todo)));
+            const response = await api.put(`/tasks/${id}`, updatedTodo);
+            setTodos(todos.map((todo) => (todo._id === id ? response.data : todo)));
             if (updatedTodo.completed) toast.success('Task marked as completed successfully!');
         } catch (error) {
             console.error('Error updating task:', error);
@@ -66,25 +57,34 @@ const Home = () => {
 
     const deleteToDo = async (id) => {
         try {
-            await fetch(`http://localhost:5001/api/tasks/${id}`, {
-                method: 'DELETE',
-            });
+            await api.delete(`/tasks/${id}`);
             setTodos(todos.filter((todo) => todo._id !== id));
-            toast.success('Task deleted successfully from the list!')
+            toast.success('Task deleted successfully from the list!');
         } catch (error) {
             console.error('Error deleting task:', error);
+        }
+    };
+
+    const assignTaskToMe = async (id) => {
+        try {
+            const response = await api.put(`/tasks/${id}`, { userId: user._id });
+            setTodos(todos.map((todo) => (todo._id === id ? response.data : todo)));
+            toast.success('Task assigned to you successfully!');
+        } catch (error) {
+            console.error('Error assigning task:', error);
         }
     };
 
     return (
         <>
             <div className='container'>
-                <AddTask addToDo={addToDo} />
+                <AddTask addToDo={addToDo} currentUser={currentUser} />
                 <div className="task-list-container">
                     <TaskList
                         todos={filteredTodos}
                         markCompleted={markCompleted}
                         deleteToDo={deleteToDo}
+                        assignTaskToMe={assignTaskToMe} // Pass the assignTaskToMe function to TaskList component
                     />
                 </div>
             </div>

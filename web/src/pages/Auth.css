@@ -1,0 +1,28 @@
+.auth-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 150px;
+}
+
+.login-container, .signup-container {
+    border: 1px solid #ccc;
+    padding: 20px;
+    width: 40%;
+}
+
+.auth-input {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.auth-btn {
+    padding: 10px;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}

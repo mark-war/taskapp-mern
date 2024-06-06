@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 
-const AddTask = ({ addToDo }) => {
+const AddTask = ({ addToDo, currentUser }) => {
     const [desc, setTitle] = useState('');
 
     const onSubmit = (e) => {
         e.preventDefault();
-        addToDo(desc);
+        if (!desc || !currentUser) return; // Ensure description and user are available
+        addToDo(desc, currentUser._id);
         setTitle('');
     }
 
@@ -14,7 +15,7 @@ const AddTask = ({ addToDo }) => {
     }
 
     return (
-        <form onSubmit={onSubmit} style={{ display: 'flex' }}>
+        <form onSubmit={onSubmit} style={{ display: 'flex', marginTop: '80px', marginBottom: '50px' }}>
             <input
                 type='text'
                 name='desc'
